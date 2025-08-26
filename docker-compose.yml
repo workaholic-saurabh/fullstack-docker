@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  db:                       # <--- Service name is now 'db'
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: testdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d
+
+  backend:
+    build: ./backend
+    container_name: backend_app
+    restart: always
+    environment:
+      DB_HOST: db          # <--- Must match service name 'db'
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: testdb
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+
